@@ -14,7 +14,7 @@ export async function createLoanController(req: Request, res: Response) {
     });
   } catch (error: any) {
     return res.status(400).json({
-      ok: false,
+      status: false,
       message: error.message,
       error,
     });

@@ -1,3 +1,4 @@
+DROP PROCEDURE IF EXISTS sp_gl_manual_expense_create;
 DELIMITER $$
 
 CREATE PROCEDURE sp_gl_manual_expense_create(
@@ -105,6 +106,8 @@ END$$
 
 DELIMITER ;
 
+
+DROP PROCEDURE IF EXISTS sp_gl_manual_transfer_create;
 
 DELIMITER $$
 
@@ -253,6 +256,8 @@ END$$
 
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_gl_manual_adjustment_create;
+
 DELIMITER $$
 
 CREATE PROCEDURE sp_gl_manual_adjustment_create(
@@ -373,6 +378,7 @@ END$$
 DELIMITER ;
 
 
+DROP PROCEDURE IF EXISTS sp_gl_transactions_get_all;
 DELIMITER $$
 
 CREATE PROCEDURE sp_gl_transactions_get_all()
@@ -392,6 +398,7 @@ END$$
 DELIMITER ;
 
 
+DROP PROCEDURE IF EXISTS sp_gl_transaction_get_by_id;
 DELIMITER $$
 
 CREATE PROCEDURE sp_gl_transaction_get_by_id(

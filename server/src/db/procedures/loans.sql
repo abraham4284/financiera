@@ -1,5 +1,5 @@
+DROP PROCEDURE IF EXISTS sp_loans_create_with_origin;
 DELIMITER $$
-
 CREATE PROCEDURE sp_loans_create_with_origin(
     IN p_loan_number VARCHAR(30),
     IN p_origin_type ENUM('ORIGINAL','REFINANCING','RESTRUCTURE'),
