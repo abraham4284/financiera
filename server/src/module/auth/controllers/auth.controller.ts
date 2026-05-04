@@ -23,7 +23,7 @@ export async function register(
   res: Response,
 ) {
   try {
-    const { username, password, img_url,idRole } = req.body;
+    const { username, password, img_url, idRole } = req.body;
 
     if (!username?.trim() || !password?.trim()) {
       return res.status(400).json({
@@ -48,11 +48,11 @@ export async function register(
       username,
       passwordHash,
       img_url,
-      idRole
+      idRole,
     ]);
 
     const idUser = result?.[0]?.[0]?.idUser as number;
-    const accessToken = signAccessToken({ idUser, username });
+    const accessToken = signAccessToken({ idUser, username, idRole });
     const refreshToken = signRefreshToken({ sid: 0, idUser });
     await createSession({
       idUser,
@@ -107,6 +107,7 @@ export async function refresh(req: Request, res: Response) {
   const accessToken = signAccessToken({
     idUser: user.idUser,
     username: user.username,
+    idRole: user.idRole,
   });
 
   // setear SOLO access, no hace falta setear refresh acá si no rotás
@@ -154,6 +155,7 @@ export async function login(req: Request, res: Response) {
     const accessToken = signAccessToken({
       idUser: user.idUser,
       username: user.username,
+      idRole: user.idRole,
     });
     const refreshToken = signRefreshToken({ sid: 0, idUser: user.idUser });
 
@@ -183,7 +185,7 @@ export async function me(req: Request, res: Response) {
       .status(401)
       .json({ status: "ERROR", message: "No access token" });
 
-  let payload: { idUser: number; username: string };
+  let payload: { idUser: number; username: string};
   try {
     payload = verifyAccessToken(token);
   } catch {
@@ -194,7 +196,7 @@ export async function me(req: Request, res: Response) {
 
   // fuente de verdad: DB
   const [rows] = await pool.query<any[]>(
-    "SELECT idUser, username FROM users WHERE idUser = ?",
+    "SELECT idUser, username, idRole FROM users WHERE idUser = ?",
     [payload.idUser],
   );
   if (!rows.length)

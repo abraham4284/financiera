@@ -6,14 +6,40 @@ import {
   getGlTransactionByIdController,
   getGlTransactionsController,
 } from "../controllers/glTransaction.controller.js";
+import { requireAuth, requireRoles } from "@/middlewares/index.js";
 
 const router = Router();
 
-router.get("/transactions", getGlTransactionsController);
-router.get("/transactions/:idGlTransaction", getGlTransactionByIdController);
+router.get(
+  "/transactions",
+  requireAuth,
+  requireRoles([1]),
+  getGlTransactionsController,
+);
+router.get(
+  "/transactions/:idGlTransaction",
+  requireAuth,
+  requireRoles([1]),
+  getGlTransactionByIdController,
+);
 
-router.post("/manual/expenses", createExpenseController);
-router.post("/manual/transfers", createTransferController);
-router.post("/manual/adjustments", createAdjustmentController);
+router.post(
+  "/manual/expenses",
+  requireAuth,
+  requireRoles([1]),
+  createExpenseController,
+);
+router.post(
+  "/manual/transfers",
+  requireAuth,
+  requireRoles([1]),
+  createTransferController,
+);
+router.post(
+  "/manual/adjustments",
+  requireAuth,
+  requireRoles([1]),
+  createAdjustmentController,
+);
 
 export default router;

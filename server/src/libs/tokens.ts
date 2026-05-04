@@ -65,3 +65,11 @@ export function verifyRefreshToken(token: string): JwtRefreshPayload {
     throw error;
   }
 }
+
+
+export interface JwtPayload {
+  idUser: number;
+  username: string;
+  idRole: number;
+  roleName?: string;
+}
