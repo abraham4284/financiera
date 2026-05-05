@@ -57,3 +57,35 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+DROP PROCEDURE IF EXISTS sp_user_actions_create;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_user_actions_create(
+    IN p_action TEXT,
+    IN p_method VARCHAR(45),
+    IN p_ip TEXT,
+    IN p_user_agent TEXT,
+    IN p_idUser INT
+)
+BEGIN
+    INSERT INTO user_actions (
+        action,
+        method,
+        date,
+        ip,
+        user_agent,
+        idUser
+    ) VALUES (
+        p_action,
+        p_method,
+        NOW(),
+        p_ip,
+        p_user_agent,
+        p_idUser
+    );
+END$$
+
+DELIMITER ;

@@ -12,7 +12,7 @@ export interface BuildLoanScheduleParams {
   principal_original: string;
   installments_count: number;
   installment_amount: string;
-  first_due_date: string;
+  disbursement_date: string;
 }
 
 export interface LoanScheduleItem {
@@ -23,7 +23,7 @@ export interface LoanScheduleItem {
   other_charges_due: string;
   total_due: string;
   principal_remaining: string;
-  notes?: string;
+  notes?: string | null;
 }
 
 function addDays(date: Date, days: number) {
@@ -32,23 +32,69 @@ function addDays(date: Date, days: number) {
   return newDate;
 }
 
-function addMonths(date: Date, months: number) {
-  const newDate = new Date(date);
-  newDate.setMonth(newDate.getMonth() + months);
-  return newDate;
+function addMonthsKeepingSafeDay(date: Date, months: number) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  return new Date(year, month + months, day);
+}
+
+function normalizeMonthlyDisbursementDate(date: Date) {
+  const day = date.getDate();
+
+  if (day <= 28) {
+    return date;
+  }
+
+  return new Date(date.getFullYear(), date.getMonth() + 1, 1);
 }
 
 function formatDate(date: Date) {
   return date.toISOString().split("T")[0];
 }
 
-function getNextDueDate(baseDate: Date, loanType: LoanType, index: number) {
-  if (loanType === "WEEKLY") return addDays(baseDate, index * 7);
-  if (loanType === "BIWEEKLY") return addDays(baseDate, index * 14);
-  if (loanType === "MONTHLY") return addMonths(baseDate, index);
-  if (loanType === "MENSUAL_LIBRE") return addMonths(baseDate, index);
+function getBaseDueDate(params: BuildLoanScheduleParams) {
+  const disbursementDate = new Date(params.disbursement_date + "T00:00:00");
 
-  return addMonths(baseDate, index);
+  if (params.loan_type === "WEEKLY") {
+    return addDays(disbursementDate, 7);
+  }
+
+  if (params.loan_type === "BIWEEKLY") {
+    return addDays(disbursementDate, 15);
+  }
+
+  if (
+    params.loan_type === "MONTHLY" ||
+    params.loan_type === "MENSUAL_LIBRE" ||
+    params.loan_type === "FIXED"
+  ) {
+    const normalizedDate = normalizeMonthlyDisbursementDate(disbursementDate);
+    return addMonthsKeepingSafeDay(normalizedDate, 1);
+  }
+
+  return addMonthsKeepingSafeDay(disbursementDate, 1);
+}
+
+function getNextDueDate(baseDate: Date, loanType: LoanType, index: number) {
+  if (loanType === "WEEKLY") {
+    return addDays(baseDate, index * 7);
+  }
+
+  if (loanType === "BIWEEKLY") {
+    return addDays(baseDate, index * 15);
+  }
+
+  if (
+    loanType === "MONTHLY" ||
+    loanType === "MENSUAL_LIBRE" ||
+    loanType === "FIXED"
+  ) {
+    return addMonthsKeepingSafeDay(baseDate, index);
+  }
+
+  return addMonthsKeepingSafeDay(baseDate, index);
 }
 
 export function buildLoanSchedule(
@@ -56,9 +102,30 @@ export function buildLoanSchedule(
 ): LoanScheduleItem[] {
   const principal = new Decimal(params.principal_original);
   const installmentAmount = new Decimal(params.installment_amount);
-  const installmentsCount = params.installments_count;
 
-  const baseDueDate = new Date(params.first_due_date + "T00:00:00");
+  const installmentsCount =
+    params.loan_type === "MENSUAL_LIBRE" ? 1 : params.installments_count;
+
+  const baseDueDate = getBaseDueDate(params);
+
+  if (params.loan_type === "MENSUAL_LIBRE") {
+    const interestDue = installmentAmount.minus(principal);
+
+    return [
+      {
+        installment_number: 1,
+        due_date: formatDate(baseDueDate),
+        principal_due: principal.toFixed(2),
+        interest_due: interestDue.greaterThan(0)
+          ? interestDue.toFixed(2)
+          : "0.00",
+        other_charges_due: "0.00",
+        total_due: installmentAmount.toFixed(2),
+        principal_remaining: "0.00",
+        notes: "Mensual libre en una sola cuota",
+      },
+    ];
+  }
 
   const principalPerInstallment = principal.div(installmentsCount);
   let principalRemaining = principal;
@@ -90,7 +157,7 @@ export function buildLoanSchedule(
       principal_remaining: principalRemaining.greaterThan(0)
         ? principalRemaining.toFixed(2)
         : "0.00",
-      notes: null as any,
+      notes: null,
     });
   }
 

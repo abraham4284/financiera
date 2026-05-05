@@ -8,9 +8,10 @@ export async function createLoanService(data: CreateLoanDTO) {
     principal_original: data.principal_original,
     installments_count: data.installments_count,
     installment_amount: data.installment_amount,
-    first_due_date: data.first_due_date,
+    disbursement_date: data.disbursement_date,
   });
 
+  const firstDueDate = schedule[0].due_date;
   const maturityDate = schedule[schedule.length - 1].due_date;
 
   const [result]: any = await pool.query(
