@@ -1,0 +1,1 @@
+export { default } from "./routes/loanPayment.routes.js"

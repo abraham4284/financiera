@@ -1,73 +1,3 @@
-use db_financiera;
-
-SELECT * FROM clients;
-SELECT * FROM accounts;
-SELECT * FROM employees;
-SELECT * FROM gl_categories;
-SELECT * FROM zones;
-SELECT * FROM gl_transactions;
-SELECT * FROM gl_transaction_lines;
-SELECT * FROM loans;
-SELECT * FROM loan_details;
-SELECT * FROM loan_guarantors;
-SELECT * FROM loan_comissions;
-SELECT * FROM users;
-SELECT * FROM roles;
-SELECT * FROM user_actions;
-SELECT * FROM loan_payments;
-SELECT * FROM loan_payment_allocations;
-
-SELECT * FROM loans WHERE idLoans = 4;
-SELECT * FROM loan_details WHERE idLoans = 4;
-SELECT * FROM loan_payment_allocations WHERE idLoanDetail = 13;
-SELECT * FROM loan_payments WHERE idLoans = 4;
-
-
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE loans;
-TRUNCATE TABLE loan_details;
-TRUNCATE TABLE loan_comissions;
-TRUNCATE TABLE loan_guarantors;
-TRUNCATE TABLE gl_transactions;
-TRUNCATE TABLE gl_transaction_lines;
-TRUNCATE TABLE loan_payments;
-TRUNCATE TABLE loan_payment_allocations;
-SET FOREIGN_KEY_CHECKS = 1;
-
-
-
-SELECT * FROM loans WHERE idLoans = 8;
-SELECT * FROM loan_details WHERE idLoans = 4;
-
-
-SELECT
-      l.idLoans,
-      l.loan_number,
-      l.principal_current,
-      l.loan_type,
-      l.status AS loan_status,
-      ld.idLoanDetail,
-      ld.installment_number,
-      ld.due_date,
-      ld.principal_due,
-      ld.interest_due,
-      ld.total_due,
-      ld.principal_paid,
-      ld.interest_paid,
-      ld.total_paid,
-      ld.balance_due,
-      ld.status AS detail_status
-    FROM loans l
-    INNER JOIN loan_details ld
-      ON ld.idLoans = l.idLoans
-    WHERE l.idLoans = 1
-      AND l.loan_type = 'MENSUAL_LIBRE'
-      AND ld.status IN ('PENDING','PARTIAL','OVERDUE')
-    ORDER BY ld.due_date ASC, ld.idLoanDetail ASC
-    LIMIT 1;
-
-
-
 DROP PROCEDURE IF EXISTS sp_loan_renewals_create;
 
 DELIMITER $$
@@ -238,4 +168,3 @@ WHERE idLoanDetail = p_currentLoanDetailId
 
     COMMIT;
 END$$
-

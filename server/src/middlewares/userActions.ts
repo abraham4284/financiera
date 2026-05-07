@@ -28,7 +28,6 @@ export async function userAction(
       userAgent,
       req.user.idUser,
     ]);
-    console.log(result,'soy result')
     next();
   } catch (error) {
     console.log("Error in audit:", error);

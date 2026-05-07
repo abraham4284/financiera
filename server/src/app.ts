@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 
-import { accountingRoutes, loansRoutes, authRoutes } from "@module/index.js";
+import { accountingRoutes, loansRoutes, authRoutes,paymentsRoutes } from "@module/index.js";
 
 dotenv.config();
 
@@ -49,7 +49,7 @@ app.get("/", (_, res) => res.send("Api funcionando"));
 app.use("/api", authRoutes);
 app.use("/api", accountingRoutes);
 app.use("/api", loansRoutes);
-// app.use("/api", glCategoriesRoutes);
+app.use("/api", paymentsRoutes);
 // app.use("/api", transactionsRoutes);
 // app.use("/api", transactionsLineRoutes);
 // app.use("/api", transactionsTruncate);
