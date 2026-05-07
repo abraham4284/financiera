@@ -300,3 +300,198 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+
+-- Para cancelar el credito
+
+DROP PROCEDURE IF EXISTS sp_loans_void;
+
+DELIMITER $$
+
+CREATE PROCEDURE sp_loans_void(
+    IN p_idLoans INT,
+    IN p_void_notes VARCHAR(255),
+    OUT p_idVoidGlTransaction INT
+)
+BEGIN
+    DECLARE v_loan_exists INT DEFAULT 0;
+    DECLARE v_payments_count INT DEFAULT 0;
+    DECLARE v_original_gl_id INT DEFAULT NULL;
+    DECLARE v_account_id INT DEFAULT NULL;
+    DECLARE v_principal_original DECIMAL(18,2) DEFAULT 0;
+    DECLARE v_loan_number VARCHAR(30);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    IF p_void_notes IS NULL OR TRIM(p_void_notes) = '' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Debe indicar un motivo de anulación';
+    END IF;
+
+    START TRANSACTION;
+
+    SELECT COUNT(*), MAX(principal_original), MAX(loan_number)
+    INTO v_loan_exists, v_principal_original, v_loan_number
+    FROM loans
+    WHERE idLoans = p_idLoans
+      AND status = 'ACTIVE';
+
+    IF v_loan_exists = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El préstamo no existe o no está activo';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_payments_count
+    FROM loan_payments
+    WHERE idLoans = p_idLoans;
+
+    IF v_payments_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se puede anular un préstamo con pagos registrados';
+    END IF;
+
+    SELECT idGlTransaction
+    INTO v_original_gl_id
+    FROM gl_transactions
+    WHERE source_module = 'LOAN'
+      AND source_id = p_idLoans
+      AND status = 'POSTED'
+    ORDER BY idGlTransaction ASC
+    LIMIT 1;
+
+    IF v_original_gl_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se encontró la transacción original del desembolso';
+    END IF;
+
+    SELECT idAccount
+    INTO v_account_id
+    FROM gl_transaction_lines
+    WHERE idGlTransaction = v_original_gl_id
+      AND entry_type = 'CREDIT'
+    ORDER BY idGltransactionLine ASC
+    LIMIT 1;
+
+    IF v_account_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se encontró la cuenta de origen del desembolso';
+    END IF;
+
+    INSERT INTO gl_transactions (
+        transaction_date,
+        description,
+        source_module,
+        source_id,
+        status,
+        created_at
+    ) VALUES (
+        CURDATE(),
+        CONCAT(
+            'Anulación préstamo ',
+            v_loan_number,
+            '. Reversa de GL #',
+            v_original_gl_id,
+            '. Motivo: ',
+            p_void_notes
+        ),
+        'VOID_LOAN',
+        p_idLoans,
+        'POSTED',
+        NOW()
+    );
+
+    SET p_idVoidGlTransaction = LAST_INSERT_ID();
+
+    INSERT INTO gl_transaction_lines (
+        entry_type,
+        amount,
+        note,
+        created_at,
+        idGlTransaction,
+        idAccount,
+        idGlCategorie
+    )
+    SELECT
+        CASE
+            WHEN entry_type = 'DEBIT' THEN 'CREDIT'
+            ELSE 'DEBIT'
+        END AS entry_type,
+        amount,
+        CONCAT(
+            'Contra-asiento de anulación. GL original #',
+            v_original_gl_id,
+            '. ',
+            COALESCE(note, '')
+        ),
+        NOW(),
+        p_idVoidGlTransaction,
+        idAccount,
+        idGlCategorie
+    FROM gl_transaction_lines
+    WHERE idGlTransaction = v_original_gl_id;
+
+    UPDATE accounts
+    SET balance = balance + v_principal_original
+    WHERE idAccount = v_account_id;
+
+    UPDATE loans
+    SET
+        status = 'VOIDED',
+        notes = CONCAT(
+            COALESCE(notes, ''),
+            ' | ANULADO: ',
+            p_void_notes,
+            '. GL original #',
+            v_original_gl_id,
+            '. GL anulación #',
+            p_idVoidGlTransaction
+        )
+    WHERE idLoans = p_idLoans;
+
+    UPDATE loan_details
+    SET
+        status = 'VOIDED',
+        balance_due = 0,
+        notes = CONCAT(
+            COALESCE(notes, ''),
+            ' | Anulado por corrección administrativa: ',
+            p_void_notes
+        )
+    WHERE idLoans = p_idLoans;
+
+    UPDATE loan_guarantors
+    SET
+        is_active = 0,
+        notes = CONCAT(
+            COALESCE(notes, ''),
+            ' | Anulado por préstamo VOIDED'
+        )
+    WHERE idLoans = p_idLoans;
+
+    UPDATE loan_comissions
+    SET
+        status = 'CANCELLED',
+        is_active = 0,
+        notes = CONCAT(
+            COALESCE(notes, ''),
+            ' | Comisión cancelada por anulación del préstamo'
+        )
+    WHERE idLoans = p_idLoans;
+
+    COMMIT;
+
+    SELECT
+        p_idLoans AS idLoans,
+        p_idVoidGlTransaction AS idVoidGlTransaction,
+        v_original_gl_id AS idOriginalGlTransaction,
+        v_account_id AS idAccountRefunded,
+        v_principal_original AS refundedAmount;
+END$$
+
+DELIMITER ;
