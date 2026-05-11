@@ -13,7 +13,7 @@ export async function getLoanRenewalProposalController(
     const loanId = Number(req.params.loanId);
     if (!loanId) {
       return res.status(400).json({
-        ok: false,
+        status: false,
         message: "ID de préstamo inválido",
       });
     }
@@ -43,7 +43,7 @@ export async function createLoanRenewalController(req: Request, res: Response) {
     });
   } catch (error: any) {
     return res.status(400).json({
-      ok: false,
+      status: false,
       message: error.message,
     });
   }
