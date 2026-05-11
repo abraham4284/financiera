@@ -42,4 +42,3 @@ SELECT * FROM loan_details WHERE idLoans = 4;
 
 
 
-
