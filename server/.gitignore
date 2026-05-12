@@ -12,3 +12,5 @@
 /config
 /database
 /models
+.env
+.env.*
