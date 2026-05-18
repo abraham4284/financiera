@@ -2,7 +2,7 @@ import  { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { sidebarLinkClass } from "../helpers";
 import { useAuthStore } from "@/views/admin";
-import { LiTransactions } from "./sidebar-components";
+import { LiAccounting } from "./sidebar-components";
 import { transactionsNav } from "@/navigation";
 
 type SideBarProps = {
@@ -80,13 +80,13 @@ export const SideBar = ({ isOpenSideBar, setIsOpenSideBar }: SideBarProps) => {
               </Link>
             </li>
 
-            <LiTransactions
+            <LiAccounting
               isOpen={openTransactions}
               setIsOpen={setOpenTransactions}
               links={transactionsNav}
               sidebarLinkClass={sidebarLinkClass}
               location={location}
-              title="Transacciones"
+              title="Contabilidad"
             />
           </ul>
 

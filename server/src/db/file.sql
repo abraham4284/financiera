@@ -35,10 +35,20 @@ TRUNCATE TABLE loan_payment_allocations;
 SET FOREIGN_KEY_CHECKS = 1;
 
 
+UPDATE gl_categories SET is_system = 1 WHERE idGlCategorie = 6;
+
 
 SELECT * FROM loans WHERE idLoans = 8;
 SELECT * FROM loan_details WHERE idLoans = 4;
 
 
+SELECT * FROM gl_categories WHERE nature = "TRANSFER";
+
+
+CALL sp_gl_categories_get_by_nature("ADJUSTMENT");
+
+
+
+SELECT * FROM gl_transaction_lines WHERE idGlTransaction = 16;
 
 

@@ -15,7 +15,7 @@ export async function createAccountService(data: CreateAccountDTO) {
 
   return {
     account: result[0]?.[0] ?? null,
-    idAccount: rows[0]?.idAccount ?? null,
+    // idAccount: rows[0]?.idAccount ?? null,
   };
 }
 

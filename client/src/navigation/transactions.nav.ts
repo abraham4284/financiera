@@ -12,7 +12,7 @@ export const transactionsNav = [
   {
     id: 3,
     title: "Transacciones",
-    url: "/admin/transaction",
+    url: "/admin/transactions",
   },
   
 ];

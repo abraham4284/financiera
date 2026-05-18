@@ -148,3 +148,22 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+CREATE PROCEDURE sp_gl_categories_get_by_nature(
+    IN p_nature ENUM('INCOME', 'EXPENSE', 'ADJUSTMENT', 'TRANSFER', 'OTHER')
+)
+BEGIN
+    SELECT
+        idGlCategorie,
+        name,
+        description,
+        nature,
+        is_system,
+        is_active,
+        created_at
+    FROM gl_categories glc
+    WHERE LOWER(glc.nature) = LOWER(p_nature)
+    AND glc.is_system = 1;
+END$$
+
+DELIMITER ;

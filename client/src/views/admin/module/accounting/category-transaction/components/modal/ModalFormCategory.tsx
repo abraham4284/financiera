@@ -21,20 +21,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "@/hooks";
-import { NumericFormat } from "react-number-format";
-import { Decimal } from "decimal.js";
 import { toast, Toaster } from "react-hot-toast";
-import {
-  currencies,
-  typesOptions,
-} from "@/views/admin/module/accounting/account/data";
+import { natureTypes } from "../../data/nature";
 
 const initialForm = {
-  idAccount: null,
+  idGlCategorie: null,
   name: "",
-  type: "",
-  currency: "",
-  balance: "",
+  nature: "",
+  is_active: "",
 };
 
 type ModalFormAccountProps = {
@@ -42,10 +36,10 @@ type ModalFormAccountProps = {
   dataEdit: any;
   loading: boolean;
   setOpenModal: (open: boolean) => void;
-  createAccount: (
+  createCategory: (
     payload: any,
   ) => Promise<{ status: boolean; message: string }>;
-  updateAccount: (
+  updateCategory: (
     id: number,
     payload: any,
   ) => Promise<{ status: boolean; message: string }>;
@@ -53,22 +47,21 @@ type ModalFormAccountProps = {
   addDataEdit: (data: any) => void;
 };
 
-export const ModalFormAccount = ({
+export const ModalFormCategory = ({
   openModal,
   dataEdit,
   loading,
   setOpenModal,
-  createAccount,
-  updateAccount,
+  createCategory,
+  updateCategory,
   closeModal,
   addDataEdit,
 }: ModalFormAccountProps) => {
   const {
-    idAccount,
-    currency,
-    type,
+    idGlCategorie,
     name,
-    balance,
+    nature,
+    is_active,
     onInputChange,
     onResetForm,
     setFormSate,
@@ -78,11 +71,10 @@ export const ModalFormAccount = ({
   useEffect(() => {
     if (dataEdit) {
       setFormSate({
-        idAccount: dataEdit.idAccount,
+        idGlCategorie: dataEdit.idGlCategorie,
         name: dataEdit.name ?? "",
-        type: dataEdit.type ?? "",
-        currency: dataEdit.currency ?? "",
-        balance: String(dataEdit.balance ?? ""),
+        nature: dataEdit.nature ?? "",
+        is_active: String(dataEdit.is_active ?? ""),
       });
     } else {
       setFormSate(initialForm);
@@ -94,57 +86,45 @@ export const ModalFormAccount = ({
     addDataEdit(null);
   };
 
-  const validCurrency = currencies.some((c: any) => c.code === currency)
-    ? currency
-    : "";
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!name || !balance) {
+    if (!name || !nature || !is_active) {
       return toast.error("Todos los campos son obligatorios");
     }
 
-    const balanceNumber = new Decimal(balance);
-
-    if (balanceNumber.isZero() || balanceNumber.isNegative()) {
-      return toast.error("Ingrese un saldo válido mayor a 0");
-    }
-
-    // Crear
-    if (idAccount === null) {
+    if (idGlCategorie === null) {
       const payload = {
         name,
-        type,
-        currency,
-        balance: balanceNumber,
+        nature,
+        is_active: is_active === "1" ? 1 : 0,
       };
-      const { status, message } = await createAccount(payload);
+      const { status, message } = await createCategory(payload);
 
       if (status) {
         closeModal();
         onResetForm();
         toast.success(message);
       } else {
-        toast.error(message || "Error al crear la cuenta.");
+        toast.error(message || "Error al crear la categoría.");
       }
       return;
     } else {
       // Editar
-      const payloadUpdate = {
+
+      const payload = {
         ...formSate,
         name,
-        type,
-        currency,
-        balance: balanceNumber,
+        nature,
+        is_active: is_active === "1" ? 1 : 0,
       };
-      const { status, message } = await updateAccount(idAccount, payloadUpdate);
+      const { status, message } = await updateCategory(idGlCategorie, payload);
 
       if (status) {
         closeModal();
         onResetForm();
         toast.success(message);
       } else {
-        toast.error(message || "Error al crear la cuenta.");
+        toast.error(message || "Error al editar la categoria.");
       }
     }
   };
@@ -154,14 +134,14 @@ export const ModalFormAccount = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {dataEdit ? "Editar cuenta" : "Nueva Cuenta"}
+            {dataEdit ? "Editar categoría" : "Nueva Categoría"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           {/* Nombre */}
           <div>
-            <Label>Nombre de la cuenta</Label>
+            <Label>Nombre de la categoría</Label>
             <Input
               name="name"
               value={name}
@@ -173,20 +153,20 @@ export const ModalFormAccount = ({
 
           <div>
             <Label htmlFor="balance">
-              Tipos <span className="text-red-500">*</span>
+              Naturaleza <span className="text-red-500">*</span>
             </Label>
             <Select
-              value={type}
+              value={nature}
               onValueChange={(value) =>
-                setFormSate({ ...formSate, type: value ? value : "" })
+                setFormSate({ ...formSate, nature: value ? value : "" })
               }
             >
               <SelectTrigger className="w-full mt-2">
                 <SelectValue placeholder="Seleccione una opción" />
               </SelectTrigger>
               <SelectContent>
-                {typesOptions.length > 0 ? (
-                  typesOptions.map((el) => (
+                {natureTypes.length > 0 ? (
+                  natureTypes.map((el) => (
                     <SelectGroup key={el.id}>
                       <SelectItem value={String(el.name)}>{el.name}</SelectItem>
                     </SelectGroup>
@@ -200,58 +180,30 @@ export const ModalFormAccount = ({
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="balance">
-              Tipos de moneda <span className="text-red-500">*</span>
-            </Label>
+          {/* Saldo con NumericFormat */}
+
+          <div className="space-y-2">
+            <Label htmlFor="priority">Activo</Label>
             <Select
-              value={validCurrency}
+              value={is_active}
               onValueChange={(value) =>
-                setFormSate({ ...formSate, currency: value ? value : "" })
+                setFormSate({ ...formSate, is_active: value ? "1" : "0" })
               }
+              disabled={loading}
             >
-              <SelectTrigger className="w-full mt-2">
-                <SelectValue placeholder="Seleccione una opción" />
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una opción" />
               </SelectTrigger>
               <SelectContent>
-                {currencies.length > 0 ? (
-                  currencies.map((el) => (
-                    <SelectGroup key={el.code}>
-                      <SelectItem value={String(el.code)}>{el.name}</SelectItem>
-                    </SelectGroup>
-                  ))
-                ) : (
-                  <SelectGroup>
-                    <SelectLabel>Sin datos</SelectLabel>
-                  </SelectGroup>
-                )}
+                <SelectGroup>
+                  <SelectLabel>Seleccione una opcion</SelectLabel>
+                  <SelectItem value={"1"}>Activo</SelectItem>
+                  <SelectItem value={"0"}>Inactivo</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Saldo con NumericFormat */}
-          <div>
-            <Label>Saldo inicial</Label>
-            <NumericFormat
-              value={balance}
-              inputMode="decimal"
-              thousandSeparator="."
-              decimalSeparator=","
-              allowedDecimalSeparators={[","]}
-              decimalScale={2}
-              allowNegative={false}
-              allowLeadingZeros={false}
-              onValueChange={(values) => {
-                setFormSate({
-                  ...formSate,
-                  balance: values.value, // ← GUARDAR SIEMPRE ESTE
-                });
-              }}
-              className="mt-2 border rounded-md p-2 w-full"
-              disabled={loading}
-              placeholder="Ej: 1.372.342,28"
-            />
-          </div>
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button
               type="button"
@@ -268,8 +220,8 @@ export const ModalFormAccount = ({
               {loading
                 ? "Guardando..."
                 : dataEdit
-                  ? "Actualizar Cuenta"
-                  : "Crear Cuenta"}
+                  ? "Actualizar Categoria"
+                  : "Crear Categoria"}
             </Button>
           </DialogFooter>
         </form>

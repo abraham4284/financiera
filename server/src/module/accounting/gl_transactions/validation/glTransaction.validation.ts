@@ -26,7 +26,7 @@ export const createTransferSchema = z
     description: z.string().min(3).max(255),
     idAccountFrom: z.number().int().positive(),
     idAccountTo: z.number().int().positive(),
-    idGlCategorie: z.number().int().positive(),
+    idGlCategorie: z.number().int().positive().optional(),
     amount: amountSchema,
     note: z.string().max(255).optional(),
   })
@@ -39,7 +39,7 @@ export const createAdjustmentSchema = z.object({
   transaction_date: dateSchema,
   description: z.string().min(3).max(255),
   idAccount: z.number().int().positive(),
-  idGlCategorie: z.number().int().positive(),
+  idGlCategorie: z.number().int().positive().optional(),
   entry_type: z.enum(["DEBIT", "CREDIT"]),
   amount: amountSchema,
   note: z.string().max(255).optional(),

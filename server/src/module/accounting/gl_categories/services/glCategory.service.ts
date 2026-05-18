@@ -17,7 +17,7 @@ export async function createGlCategoryService(data: CreateGlCategoryDTO) {
 
   return {
     category: result[0]?.[0] ?? null,
-    idGlCategorie: rows[0]?.idGlCategorie ?? null,
+    // idGlCategorie: rows[0]?.idGlCategorie ?? null,
   };
 }
 

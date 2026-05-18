@@ -67,11 +67,12 @@ export const useAccount = () => {
       try {
         setLoading(true);
         const { data } = await createAccountRequest(payload); // ApiResponse<Account>
-
+        console.log(data,'data')
         if (data.status) {
           // si el backend devuelve la cuenta creada
           setAccounts((prev) => [...prev, data.data]);
           setError(null);
+          getAccounts(); // Refrescar la lista después de crear
           return { status: true, message: data.message, data: data.data };
         }
 

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-type LiTransactionsProps = {
+type LiAccountingProps = {
   setIsOpen: (open: boolean) => void;
   isOpen: boolean;
   links: { id: number; title: string; url: string }[];
@@ -9,14 +9,14 @@ type LiTransactionsProps = {
   title: string;
 };
 
-export const LiTransactions = ({
+export const LiAccounting = ({
   setIsOpen,
   isOpen,
   links,
   sidebarLinkClass,
   location,
   title,
-}: LiTransactionsProps) => {
+}: LiAccountingProps) => {
   const classTitle = isOpen
     ? "ms-3 flex-1 text-left cursor-pointer  text-blue-700 dark:bg-gray-700 dark:text-white font-bold"
     : "ms-3 flex-1 text-left cursor-pointer";

@@ -24,7 +24,7 @@ export interface CreateTransferDTO {
   description: string;
   idAccountFrom: number;
   idAccountTo: number;
-  idGlCategorie: number;
+  idGlCategorie?: number;
   amount: string;
   note?: string;
 }
@@ -33,7 +33,7 @@ export interface CreateAdjustmentDTO {
   transaction_date: string;
   description: string;
   idAccount: number;
-  idGlCategorie: number;
+  idGlCategorie?: number;
   entry_type: GlEntryType;
   amount: string;
   note?: string;
