@@ -2,8 +2,8 @@ import  { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { sidebarLinkClass } from "../helpers";
 import { useAuthStore } from "@/views/admin";
-import { LiAccounting } from "./sidebar-components";
-import { transactionsNav } from "@/navigation";
+import { LiAccounting,LiPeople } from "./sidebar-components";
+import { peopleNav, transactionsNav } from "@/navigation";
 
 type SideBarProps = {
   isOpenSideBar: boolean;
@@ -14,6 +14,7 @@ export const SideBar = ({ isOpenSideBar, setIsOpenSideBar }: SideBarProps) => {
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const [openTransactions, setOpenTransactions] = useState(false);
+  const [openPeople, setOpenPeople] = useState(false);
   const siderBarRef = useRef<HTMLElement | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -87,6 +88,14 @@ export const SideBar = ({ isOpenSideBar, setIsOpenSideBar }: SideBarProps) => {
               sidebarLinkClass={sidebarLinkClass}
               location={location}
               title="Contabilidad"
+            />
+            <LiPeople
+              isOpen={openPeople}
+              setIsOpen={setOpenPeople}
+              links={peopleNav}
+              sidebarLinkClass={sidebarLinkClass}
+              location={location}
+              title="Personas"
             />
           </ul>
 

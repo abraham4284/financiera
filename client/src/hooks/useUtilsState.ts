@@ -5,7 +5,7 @@ export const useUtilsState = <T,>() => {
   const [isOpenModalEdit, setOpenModalEdit] = useState(false);
   const [dataEdit, setDataEdit] = useState<T | null>(null);
 
-  const addDataEdit = (data: T) => setDataEdit(data);
+  const addDataEdit = (data: T | null) => setDataEdit(data);
   const resetDataEdit = () => setDataEdit(null);
 
   const toggleModal = () => setIsOpen((prev) => !prev);

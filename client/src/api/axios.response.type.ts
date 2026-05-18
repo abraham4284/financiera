@@ -1,12 +1,12 @@
 export type ApiResponse<T> = {
   status: boolean;
-  success?: boolean;
   message: string;
   data: T;
+  errors?: Record<string, string>;
 };
 
-
 export type ApiMessageResponse = {
-  status: boolean
+  status: boolean;
   message: string;
+  errors?: Record<string, string>;
 };

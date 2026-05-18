@@ -21,10 +21,7 @@ export async function createClientService(data: CreateClientDTO) {
 
   const [rows]: any = await pool.query("SELECT @idClient AS idClient");
 
-  return {
-    client: result[0]?.[0] ?? null,
-    idClient: rows[0]?.idClient ?? null,
-  };
+  return result[0]?.[0] ?? null;
 }
 
 export async function getClientsService(onlyActive = true, idZone?: number) {

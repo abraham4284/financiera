@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import {
   clientIdParamSchema,
   createClientSchema,
@@ -12,6 +12,8 @@ import {
   toggleClientStatusService,
   updateClientService,
 } from "../services/client.service.js";
+import { ZodError } from "zod";
+import { formatZodErrors } from "@/helpers/handleZodError.js";
 
 export async function createClientController(req: Request, res: Response) {
   try {
@@ -24,9 +26,17 @@ export async function createClientController(req: Request, res: Response) {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        status: false,
+        message: "Error de validación",
+        errors: formatZodErrors(error),
+      });
+    }
+
     return res.status(400).json({
       status: false,
-      message: error.sqlMessage || error.message,
+      message: error.sqlMessage || error.message || "Error inesperado",
     });
   }
 }
@@ -35,9 +45,7 @@ export async function getClientsController(req: Request, res: Response) {
   try {
     const onlyActive = req.query.onlyActive !== "false";
 
-    const idZone = req.query.idZone
-      ? Number(req.query.idZone)
-      : undefined;
+    const idZone = req.query.idZone ? Number(req.query.idZone) : undefined;
 
     if (req.query.idZone && Number.isNaN(idZone)) {
       return res.status(400).json({
@@ -104,7 +112,10 @@ export async function updateClientController(req: Request, res: Response) {
   }
 }
 
-export async function toggleClientStatusController(req: Request, res: Response) {
+export async function toggleClientStatusController(
+  req: Request,
+  res: Response,
+) {
   try {
     const params = clientIdParamSchema.parse(req.params);
     const data = toggleClientStatusSchema.parse(req.body);
